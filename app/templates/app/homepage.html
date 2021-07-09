@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block head_title %} {{ block.super }} {% endblock head_title %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    {% if request.user.is_authenticated %}
+    <div class="col-sm-auto">
+        <div class="p-3 content-form m-3">
+            <form class="crispy" action="{% url 'homepage' %}" method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <input type="submit" class="btn buttons" value="Create Order">
+            </form>
+        </div>
+    </div>
+
+    <div class="col-sm-auto">
+        <p class="fs-1 fw-bold text-white">All Orders</p>
+        <div class="table-responsive-md  pb-3">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">User</th>
+                        <th scope="col">Position</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orderList %}
+                    <tr>
+                        <td>{{ order.profile.user }}</td>
+                        <td>{{ order.position }}</td>
+                        <td>{{ order.price }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.datetime }}</td>
+                        <td>{{ order.profile }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    <p class="fs-1 fw-bold text-white">Open Orders</p>
+    <div class="table-responsive-md">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">User</th>
+                        <th scope="col">Position</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in openOrderList %}
+                    <tr>
+                        <td>{{ order.profile.user }}</td>
+                        <td>{{ order.position }}</td>
+                        <td>{{ order.price }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.datetime }}</td>
+                        <td>{{ order.profile }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="col m-5">
+        <div class="center-content p-3 text-center">
+            <p class="fs-1 text-white fw-bold">Login or sign up</p>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

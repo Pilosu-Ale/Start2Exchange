@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block head_title %} {{ block.super }} - My Profile {% endblock head_title %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col m-5">
+    <div class="center-content">
+        <p class="fs-1 fw-bold mb-3 text-center text-white">{{ profile.user.username }}</p>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Position</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in myOrderList %}
+                <tr>
+                    <th>{{ order.position }}</th>
+                    <td>{{ order.price }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.datetime }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="fs-3 fw-bold mb-3 text-center text-white">My profit: {{ profile.balance }} $</p>
+        <p class="fs-3 fw-bold mb-3 text-center text-white">My Bitcoin wallet: {{ profile.BTC_wallet }} BTC</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
