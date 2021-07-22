@@ -21,16 +21,7 @@ def homepage(request):
             order.datetime = timezone.now()
             order.profile = Profile.objects.get(user=request.user)
 
-            if not sellOrderList and order.position == "BUY":
-                order.save()
-                return HttpResponseRedirect("/")
-            if not buyOrderList and order.position == "SELL":
-                order.save()
-                return HttpResponseRedirect("/")
-
-
-
-            if order.position == "BUY":
+            if order.position == "BUY" and sellOrderList:
                 sellOrder = sellOrderList[0]
                 if order.price >= sellOrder.price and order.profile != sellOrder.profile:
                     newOrderProfile = Profile.objects.get(user=order.profile.user)
@@ -60,7 +51,7 @@ def homepage(request):
                     sellOrderProfile.BTC_wallet -= sellOrder.quantity
                     sellOrderProfile.save()
 
-            elif order.position == "SELL":
+            elif order.position == "SELL" and buyOrderList:
                 buyOrder = buyOrderList[0]
                 if order.price <= buyOrder.price and order.profile != buyOrder.profile:
                     newOrderProfile = Profile.objects.get(user=order.profile.user)
