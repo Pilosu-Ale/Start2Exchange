@@ -50,6 +50,8 @@ def homepage(request):
                     sellOrderProfile.balance += sellOrder.price * sellOrder.quantity  # aggiorno il profilo del vecchio ordine SEL
                     sellOrderProfile.BTC_wallet -= sellOrder.quantity
                     sellOrderProfile.save()
+                else:
+                    order.save()
 
             elif order.position == "SELL" and buyOrderList:
                 buyOrder = buyOrderList[0]
@@ -74,6 +76,8 @@ def homepage(request):
                     buyOrderProfile.balance -= order.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
                     buyOrderProfile.BTC_wallet -= order.quantity
                     buyOrderProfile.save()
+                else:
+                    order.save()
 
             else:
                 order.save()
