@@ -52,7 +52,6 @@ def homepage(request):
                     sellOrderProfile.save()
                 else:
                     order.save()
-
             elif order.position == "SELL" and buyOrderList:
                 buyOrder = buyOrderList[0]
                 if order.price <= buyOrder.price and order.profile != buyOrder.profile:
@@ -78,7 +77,6 @@ def homepage(request):
                     buyOrderProfile.save()
                 else:
                     order.save()
-
             else:
                 order.save()
 
