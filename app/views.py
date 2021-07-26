@@ -6,12 +6,11 @@ from django.utils import timezone
 
 def homepage(request):
     orderList = Order.objects.filter().order_by('price')
-    openOrderList = Order.objects.filter(status="OPEN").order_by('-datetime')
     sellOrderList = Order.objects.filter(position="SELL", status="OPEN").order_by('price')
     buyOrderList = Order.objects.filter(position="BUY", status="OPEN").order_by('-price')
 
     if request.method == "POST":
-        form = OrderForm(request.POST)
+        form = OrderForm(request.POST, user=request.user)
         if form.is_valid():
             order = form.save(commit=False)
             order.position = form.cleaned_data['position']
@@ -54,7 +53,7 @@ def homepage(request):
                     order.save()
             elif order.position == "SELL" and buyOrderList:
                 buyOrder = buyOrderList[0]
-                if order.price <= buyOrder.price and order.profile != buyOrder.profile:
+                if order.price <= buyOrder.price:
                     newOrderProfile = Profile.objects.get(user=order.profile.user)
                     buyOrderProfile = Profile.objects.get(user=buyOrder.profile.user)
                     if order.quantity <= buyOrder.quantity:
@@ -68,11 +67,11 @@ def homepage(request):
                             buyOrder.quantity -= order.quantity  # sottraggo i BTC del nuovo ordine al vecchio BUY che resta aperto
                             buyOrder.save()
 
-                    newOrderProfile.balance += order.price * order.quantity  # aggiorno il profilo del nuovo ordine
+                    newOrderProfile.balance += buyOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
                     newOrderProfile.BTC_wallet -= order.quantity
                     newOrderProfile.save()
 
-                    buyOrderProfile.balance -= order.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
+                    buyOrderProfile.balance -= buyOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
                     buyOrderProfile.BTC_wallet -= order.quantity
                     buyOrderProfile.save()
                 else:
@@ -80,12 +79,19 @@ def homepage(request):
             else:
                 order.save()
 
-        return HttpResponseRedirect("/")
+            return HttpResponseRedirect("/")
 
     else:
         form = OrderForm()
 
-    return render(request, "app/homepage.html", {'orderList': orderList, 'form': form, 'openOrderList': openOrderList})
+    return render(
+        request, "app/homepage.html", {
+            'orderList': orderList,
+            'form': form,
+            'sellOrderList': sellOrderList,
+            'buyOrderList': buyOrderList
+        }
+    )
 
 
 def profitPage(request):
