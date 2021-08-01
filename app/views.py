@@ -22,58 +22,102 @@ def homepage(request):
 
             if order.position == "BUY" and sellOrderList:
                 sellOrder = sellOrderList[0]
-                if order.price >= sellOrder.price and order.profile != sellOrder.profile:
+                if order.price >= sellOrder.price:
                     newOrderProfile = Profile.objects.get(user=order.profile.user)
                     sellOrderProfile = Profile.objects.get(user=sellOrder.profile.user)
-                    if order.quantity <= sellOrder.quantity:
+                    if order.quantity < sellOrder.quantity:
+                        order.status = "CLOSED"  # chiudo il nuovo ordine BUY
+                        order.save()
+                        sellOrder.quantity -= order.quantity  # sottraggo i BTC del nuovo ordine al vecchio SELL che resta aperto
+                        sellOrder.save()
+
+                        newOrderProfile.balance -= sellOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet += order.quantity
+                        newOrderProfile.save()
+
+                        sellOrderProfile.balance += sellOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        sellOrderProfile.BTC_wallet -= order.quantity
+                        sellOrderProfile.save()
+
+                    elif order.quantity == sellOrder.quantity:
+                        sellOrder.status = "CLOSED"  # chiudo il vecchio ordine SELL
+                        sellOrder.save()
                         order.status = "CLOSED"  # chiudo il nuovo ordine BUY
                         order.save()
 
-                        if order.quantity == sellOrder.quantity:
-                            sellOrder.status = "CLOSED"  # chiudo il vecchio ordine SELL
-                            sellOrder.save()
-                        else:
-                            sellOrder.quantity -= order.quantity  # sottraggo i BTC del nuovo ordine al vecchio SELL che resta aperto
-                            sellOrder.save()
+                        newOrderProfile.balance -= sellOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet += order.quantity
+                        newOrderProfile.save()
+
+                        sellOrderProfile.balance += sellOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        sellOrderProfile.BTC_wallet -= order.quantity
+                        sellOrderProfile.save()
+
                     else:
+                        order.quantity -= sellOrder.quantity  # sottraggo i BTC del vecchio ordine SELL al nuovo che resta aperto
+                        order.save()
                         sellOrder.status = "CLOSED"  # chiudo il vecchio ordine SELL
                         sellOrder.save()
 
-                        order.quantity -= sellOrder.quantity  # sottraggo i BTC del vecchio ordine SELL al nuovo ordine che resta aperto
-                        order.save()
+                        newOrderProfile.balance -= sellOrder.price * sellOrder.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet += sellOrder.quantity
+                        newOrderProfile.save()
 
-                    newOrderProfile.balance -= sellOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
-                    newOrderProfile.BTC_wallet += order.quantity
-                    newOrderProfile.save()
+                        sellOrderProfile.balance += sellOrder.price * sellOrder.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        sellOrderProfile.BTC_wallet -= sellOrder.quantity
+                        sellOrderProfile.save()
 
-                    sellOrderProfile.balance += sellOrder.price * sellOrder.quantity  # aggiorno il profilo del vecchio ordine SEL
-                    sellOrderProfile.BTC_wallet -= sellOrder.quantity
-                    sellOrderProfile.save()
                 else:
                     order.save()
+
             elif order.position == "SELL" and buyOrderList:
                 buyOrder = buyOrderList[0]
                 if order.price <= buyOrder.price:
                     newOrderProfile = Profile.objects.get(user=order.profile.user)
                     buyOrderProfile = Profile.objects.get(user=buyOrder.profile.user)
-                    if order.quantity <= buyOrder.quantity:
+                    if order.quantity < buyOrder.quantity:
                         order.status = "CLOSED"  # chiudo il nuovo ordine SELL
                         order.save()
+                        buyOrder.quantity -= order.quantity  # sottraggo i BTC del nuovo ordine al vecchio BUY che resta aperto
+                        buyOrder.save()
 
-                        if order.quantity == buyOrder.quantity:
-                            buyOrder.status = "CLOSED"  # chiudo il vecchio ordine BUY
-                            buyOrder.save()
-                        else:
-                            buyOrder.quantity -= order.quantity  # sottraggo i BTC del nuovo ordine al vecchio BUY che resta aperto
-                            buyOrder.save()
+                        newOrderProfile.balance += buyOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet -= order.quantity
+                        newOrderProfile.save()
 
-                    newOrderProfile.balance += buyOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
-                    newOrderProfile.BTC_wallet -= order.quantity
-                    newOrderProfile.save()
+                        buyOrderProfile.balance -= buyOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        buyOrderProfile.BTC_wallet += order.quantity
+                        buyOrderProfile.save()
 
-                    buyOrderProfile.balance -= buyOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
-                    buyOrderProfile.BTC_wallet -= order.quantity
-                    buyOrderProfile.save()
+                    elif order.quantity == buyOrder.quantity:
+                        order.status = "CLOSED"  # chiudo il nuovo ordine SELL
+                        order.save()
+                        buyOrder.status = "CLOSED"  # chiudo il vecchio ordine BUY
+                        buyOrder.save()
+
+                        newOrderProfile.balance += buyOrder.price * order.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet -= order.quantity
+                        newOrderProfile.save()
+
+                        buyOrderProfile.balance -= buyOrder.price * order.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        buyOrderProfile.BTC_wallet += order.quantity
+                        buyOrderProfile.save()
+
+                    else:
+                        buyOrder.status = "CLOSED"  # chiudo il vecchio ordine BUY
+                        buyOrder.save()
+
+                        order.quantity -= buyOrder.quantity  # sottraggo i BTC del vecchio ordine BUY al nuovo che resta aperto
+                        order.save()
+
+                        newOrderProfile.balance += buyOrder.price * buyOrder.quantity  # aggiorno il profilo del nuovo ordine
+                        newOrderProfile.BTC_wallet -= buyOrder.quantity
+                        newOrderProfile.save()
+
+                        buyOrderProfile.balance -= buyOrder.price * buyOrder.quantity  # aggiorno il profilo del vecchio ordine SEL
+                        buyOrderProfile.BTC_wallet += buyOrder.quantity
+                        buyOrderProfile.save()
+
                 else:
                     order.save()
             else:
